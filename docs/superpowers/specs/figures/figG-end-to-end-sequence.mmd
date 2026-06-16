@@ -1,0 +1,24 @@
+sequenceDiagram
+    actor Arch as Architect
+    participant API
+    participant Orch as Orchestrator
+    participant Q as Queue
+    participant Run as Battle Engine
+    participant Ref as Referee
+    actor HJ as Human (HITL)
+
+    Arch->>API: submit agent (before deadline)
+    Note over API: author-can't-compete check
+    API->>Orch: window locks
+    Orch->>Orch: resolve agents vs ruleset
+    Orch->>Q: fan out 3 runs / submission
+    Q->>Run: run job
+    Run->>Run: reveal task · enforce budgets · log
+    Run->>Ref: transcript + artifacts (+ hash)
+    Ref->>Ref: auto-checks → LLM judge → score
+    alt margin < 5% or Finals
+        Ref->>HJ: appeal review
+        HJ-->>Ref: confirm / override
+    end
+    Ref->>API: standings + Glicko + season points
+    API-->>Arch: recap + replays (timed reveal)

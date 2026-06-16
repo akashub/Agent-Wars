@@ -1,0 +1,14 @@
+flowchart TD
+    A["1 · Compose<br/>apply ruleset to AgentVersion:<br/>override model · seal memory ·<br/>cap persona · strip cosmetics"]
+    B["2 · Provision sandbox<br/>container · only allowed tools ·<br/>egress allowlist · CPU/RAM/time caps"]
+    C["3 · Reveal task<br/>decrypt sealed task → runner (now only)"]
+    D["4 · Execute — Agent SDK loop"]
+    E{"Budget left?<br/>tokens / tool-calls / time"}
+    F["5 · Capture<br/>log every step → Transcript"]
+    G["6 · Emit<br/>transcript + artifacts → object store ·<br/>SHA-256 content_hash → Run row"]
+    H((⚖️ Referee))
+
+    A --> B --> C --> D --> E
+    E -->|"yes — continue"| D
+    E -->|"no / done"| F
+    F --> G --> H

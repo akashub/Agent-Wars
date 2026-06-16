@@ -1,0 +1,34 @@
+erDiagram
+    USER ||--o{ AGENT : owns
+    AGENT ||--o{ AGENT_VERSION : snapshots
+    USER ||--o{ WAR_PACKAGE : authors
+    SEASON ||--o{ WAR : contains
+    WAR_PACKAGE ||--o{ WAR : "instantiated as"
+    WAR ||--o{ SUBMISSION : receives
+    AGENT_VERSION ||--o{ SUBMISSION : "entered as"
+    SUBMISSION ||--o{ RUN : "executed N times"
+    RUN ||--o{ AUTOCHECK_RESULT : produces
+    RUN ||--|| TRANSCRIPT : "logged to"
+    SUBMISSION ||--|| JUDGE_RESULT : "scored by"
+    SUBMISSION ||--|| SCORE : finalized
+    WAR ||--o{ APPEAL : "may raise"
+    AGENT ||--o{ MEDAL : earns
+
+    WAR_PACKAGE {
+        uuid id
+        string format
+        uuid author_id
+    }
+    SUBMISSION {
+        uuid id
+        uuid architect_id
+    }
+    RUN {
+        uuid id
+        string agent_version
+        json ruleset_snapshot
+        int seed
+        int tokens_used
+        string content_hash
+        string transcript_ref
+    }

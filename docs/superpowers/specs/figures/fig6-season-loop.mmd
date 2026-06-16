@@ -1,0 +1,17 @@
+flowchart TD
+    Build["🛠️ Build / tune your Agent"]
+    Ladder["🪜 Always-on Ladder<br/>(practice · Glicko rating)"]
+    Marquee["📣 Marquee Wars<br/>(scheduled · Season Points)"]
+    Standings{"Season standings"}
+    Finals["🏆 Finals — Top 4 bracket<br/>(usually Open War)"]
+    Medals["🥇 Medals & titles awarded"]
+    Reset["🔄 Off-week: recap + Meta Report<br/>→ new season (rule tweaks, new formats)"]
+
+    Build --> Ladder
+    Build --> Marquee
+    Ladder -->|"climb continuously"| Standings
+    Marquee -->|"big points by placement"| Standings
+    Standings -->|"top 4 qualify"| Finals
+    Finals --> Medals
+    Medals --> Reset
+    Reset -->|"next season"| Build

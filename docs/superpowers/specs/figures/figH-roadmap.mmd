@@ -1,0 +1,10 @@
+flowchart LR
+    P0["<b>Phase 0 · Engine core</b><br/>schemas · orchestrator · battle ·<br/>referee · scoring · hashing · worktree<br/><i>CLI, no UI</i>"]
+    P1["<b>Phase 1 · Thin web app (v1)</b><br/>DB · queue · object store · API ·<br/>Builder · Ladder · Replays · auth<br/><i>first real season</i>"]
+    P2["<b>Phase 2 · Show & depth</b><br/>casting · more formats · Glicko rotation ·<br/>medals · attribution analytics"]
+    P3["<b>Phase 3 · Public hardening</b><br/>microVM isolation · community authoring ·<br/>abuse limits · billing · sign-up"]
+    P0 ==> P1 ==> P2 ==> P3
+    style P0 fill:#e8f0fe
+    style P1 fill:#e6f4ea
+    style P2 fill:#fef7e0
+    style P3 fill:#fce8e6

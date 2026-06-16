@@ -1,0 +1,12 @@
+flowchart LR
+    Base["📦 Baseline branch<br/>(starter repo + hidden tests)"]
+    WT["🌿 Throwaway worktree<br/>(this run only)"]
+    Agent["🤖 Agent edits files"]
+    Diff["📝 git diff vs baseline"]
+    Test["✅ Apply diff → run test suite"]
+    Score["🎯 Pass/fail → Scoring"]
+    Replay["🎬 Diff → Replay Viewer"]
+
+    Base -->|"clone"| WT --> Agent --> Diff
+    Diff --> Test --> Score
+    Diff --> Replay

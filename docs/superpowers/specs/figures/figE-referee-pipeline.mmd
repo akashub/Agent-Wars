@@ -1,0 +1,16 @@
+flowchart TD
+    In["Agent run(s) + transcript"]
+    AC["① Auto-checks (deterministic)<br/>rule-compliance · artifacts ·<br/>exact / diff-based correctness"]
+    Q1{"Hard rule<br/>violation?"}
+    DQ["⛔ DQ / penalty"]
+    LJ["② LLM Judge (neutral model)<br/>agent output as QUOTED EVIDENCE ·<br/>authored rubric · structured JSON"]
+    SC["③ Scoring Engine<br/>base + subtasks + bonuses − penalties ·<br/>averaged over N runs · tiebreakers"]
+    Q2{"Margin &lt; 5%<br/>or Finals?"}
+    HITL["④ HITL appeal<br/>human reviews transcript + rationale"]
+    Out(["✅ Final Score → ladder + season points"])
+
+    In --> AC --> Q1
+    Q1 -->|"yes"| DQ
+    Q1 -->|"no"| LJ --> SC --> Q2
+    Q2 -->|"yes"| HITL --> Out
+    Q2 -->|"no"| Out

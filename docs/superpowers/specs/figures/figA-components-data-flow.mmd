@@ -1,0 +1,20 @@
+flowchart TB
+    Client["🖥️ Web Client (SPA)<br/>Builder · Ladder · Replays · Recaps"]
+    API["🌐 API Server<br/>auth · CRUD · reads (never runs agents)"]
+    DB[("🗄️ PostgreSQL<br/>users · agents · packages<br/>wars · runs · scores · medals")]
+    Q["📬 Queue (Redis/BullMQ)<br/>war & run jobs"]
+    OS[("🪣 Object Store<br/>transcripts · replays · artifacts")]
+    Orch["🧠 Orchestrator<br/>schedule · freeze layers · fan-out runs"]
+    Battle["⚔️ Battle Engine / Runner<br/>sandboxed · enforces budgets · logs"]
+    Ref["⚖️ Referee Engine<br/>auto-checks → LLM judge → scoring → HITL"]
+
+    Client <-->|"REST + WebSocket"| API
+    API --> DB
+    API -->|"enqueue war"| Q
+    Q --> Orch
+    Orch -->|"run jobs"| Battle
+    Battle -->|"transcript + artifacts"| OS
+    Battle --> Ref
+    Ref -->|"scores"| DB
+    Orch -->|"standings · ratings"| DB
+    API -->|"read replays"| OS

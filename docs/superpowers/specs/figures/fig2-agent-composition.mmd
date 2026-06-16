@@ -1,0 +1,21 @@
+flowchart LR
+    subgraph BUILD["🛠️ Your Agent Build (all 6 layers)"]
+        P[Persona]
+        T[Tools]
+        M[Memory]
+        S[Strategy]
+        Su[Sub-agents]
+        Mo[Model]
+    end
+    R{{"War Ruleset<br/>(freeze / cap / free each layer)"}}
+    Resolved["✅ Resolved, rule-compliant Agent<br/>(cosmetics stripped)"]
+    War([⚔️ Enters the War])
+
+    P --> R
+    T --> R
+    M --> R
+    S --> R
+    Su --> R
+    Mo --> R
+    R -->|"applies locks"| Resolved
+    Resolved --> War

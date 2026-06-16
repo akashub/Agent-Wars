@@ -1,0 +1,11 @@
+flowchart LR
+    M["Match results<br/>(layer combos + win/loss)"]
+    Gate{"Enough match<br/>volume?"}
+    Reg["Extended Bradley-Terry /<br/>logistic regression"]
+    Coef["Layer-strength coefficients<br/>+ confidence intervals"]
+    Ins["📊 Meta Report insight<br/>'Strategy B ≈ +14% win'"]
+
+    M --> Gate
+    Gate -->|"no"| Wait["⏳ stay descriptive<br/>(win-rate-by-layer)"]
+    Gate -->|"yes"| Reg --> Coef --> Ins
+    Coef -.->|"causal only if<br/>layer was ruleset-frozen"| Ins
