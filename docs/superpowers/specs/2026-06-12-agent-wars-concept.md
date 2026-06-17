@@ -31,6 +31,15 @@ in the season **Finals**.
 does it for agent design — and unlike those, every match produces a watchable
 story, because agents narrate their own thinking as they fight.
 
+**Ambition & trajectory:** this is built as a **general, public product**. The
+friend-group launch is a *beachhead* to prove the loop is fun and the engine works —
+not the destination. That goal is deliberate: it's why the architecture front-loads
+durable contracts, a standalone engine, platform-controlled compute, and
+hostile-by-design seams (technical spec §1). One caution we hold honestly: a great
+friend-group season validates *fun + engine*, but **not** the hard public-product
+problems (judge-gaming at scale, task supply, security, sybil/collusion, billing) —
+those get designed-for now and built as we expand.
+
 ---
 
 ## 2. The Core Fantasy
@@ -302,6 +311,11 @@ defines it, and the skill it rewards:
 - **Judged:** LLM judge, ideally on a task with a crisp quality gradient.
 - **Skill tested:** Tactical micro-decisions. Removes every excuse — it's just you
   vs. them. Great for grudge matches and tiebreakers.
+- **vs. Architect's Duel (don't confuse them):** in a Duel you bring your *own
+  pre-built* strategy/orchestration layer (everything else identical) — it rewards a
+  standing build. Mirror strips even that: identical build for both, and you write a
+  *one-off live strategy note for this single war* — pure in-the-moment tactics, no
+  pre-designed edge.
 
 ### 7.6 — Blind War 🙈
 - **Fantasy:** No prep, no tuning, raw adaptability. "Cold open."
@@ -345,6 +359,10 @@ defines it, and the skill it rewards:
 - **Judged:** Auto + LLM judge.
 - **Skill tested:** Adaptation and reading opponents. Adds delicious pre-war
   strategy and trash-talk; great spectator drama.
+- **Operational caveat:** the snake-draft is *synchronous* (players pick in turns),
+  which cuts against the async-submission/ladder model. Treat Draft War as a
+  scheduled, live-event format (it needs everyone present at draft time), not a
+  drop-in ladder format.
 
 ### 7.10 — Red Team War (Adversarial) ⚔️
 - **Fantasy:** Build vs. break. "Spear and shield."
@@ -446,12 +464,14 @@ afterthought. Every war should generate watchable artifacts:
 
 - **Tale of the Tape:** pre-war stat comparison of the competitors (records, ranks,
   signature styles, head-to-head history). The hype segment.
-- **The Replay:** full transcript of each agent's run — its reasoning, tool calls,
-  sub-agent chatter, recoveries, and mistakes — rendered as a readable/animated
-  "fight." This is the core spectacle; agents narrate their own thinking as they
-  fight, which no traditional sport can offer.
-- **The Recap:** an auto-generated (LLM-written) narrated summary of the war — the
-  turning point, the clutch moment, the blunder. Publishable to a feed/blog/video.
+- **The Recap (the headline):** an auto-generated (LLM-written) narrated summary of
+  the war — the turning point, the clutch moment, the blunder. This is the *real*
+  watchable product; raw transcripts are mostly tedious (tool call, reasoning, retry),
+  so the recap is what extracts the story. Publishable to a feed/blog/video.
+- **The Replay (the box score):** the full transcript of each agent's run — reasoning,
+  tool calls, sub-agent chatter, recoveries, mistakes — rendered as a readable/animated
+  "fight" for the people who want to dig in. Agents narrating their own thinking is
+  something no traditional sport offers, but it's the detail view, not the headline.
 - **The Leaderboard:** clean, public, always-current ladder + season standings.
 - **Casting (optional):** a "commentator" LLM persona that calls the action over a
   replay for streamed/video content.

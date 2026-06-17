@@ -13,19 +13,55 @@ step that follows.
 
 ## 1. Design Goals & Constraints
 
+**Ambition.** Agent Wars is built as a **general, public product**; the friend-group
+launch is a *beachhead*, not the endpoint. That trajectory shapes the architecture:
+we build the durable seams now and harden them later, rather than building a
+friends-only toy we'd have to re-architect.
+
 | Goal | Implication |
 |---|---|
 | **Fairness & trust** | Reproducible runs, full logs, injection-proof judging, anti-overfitting. |
 | **Configurability** | Every agent layer freezable per war; judging modes mixable per war. |
-| **Spectacle** | Every run produces a durable, replayable, narratable artifact. |
-| **Cost control** | Hard per-war token/tool ceilings; spend is bounded and observable. |
-| **Buildable v1** | Friends + show trust model → lighter sandboxing than a hostile public platform. |
+| **Platform-controlled compute** | Platform owns model access + enforces per-war budgets. Preserves the two fairness levers (model-frozen + budget enforcer). No BYO-key in fair formats. |
+| **Spectacle** | Every run produces a durable artifact; the **recap** is the headline, the replay is the box score. |
+| **Cost control** | Hard per-war token/tool ceilings; spend is bounded and observable; compute is a per-match COGS line we design around. |
+| **Hostile-by-design seams** | The orchestrator↔runner boundary, identity/rating, and authoring are designed assuming bad actors — even where enforcement ships later. |
 | **Upgrade path** | v1 thin web app over a solid engine → public platform later without re-architecting the core. |
 
-**Non-goals for v1:** hardened multi-tenant isolation of untrusted strangers'
-arbitrary code, horizontal scale to thousands of concurrent wars, payment/billing.
-These are deferred (§14, Phase 3) and explicitly *not* designed for now — the friend
-group is a trusted tenant.
+**What the friend phase does and does NOT validate.** It validates the *core loop is
+fun* and the *engine works* — real and worth knowing. It does **not** touch the hard
+problems of the public product: adversarial runner security, abuse, sybil/collusion,
+billing, cold-start, and untrusted War Package authoring. We must not mistake "friends
+loved it" for "product validated." Accordingly, three things are **built later but
+designed-for now** (cheap as seams, brutal as retrofits):
+
+1. **Adversarial runner isolation** — design the orchestrator↔runner seam assuming the
+   runner is hostile, so container → microVM (Firecracker) is a config swap, not a
+   rewrite (§6).
+2. **Sybil / collusion / multi-accounting** — identity + rating model assumes accounts
+   may feed each other wins; enforcement comes later, the seam exists now (§8).
+3. **Compute economics** — *resolved now* (§1.1) because it decides whether the
+   fairness levers even hold.
+
+**Genuine non-goals for v1 (not built, not designed-for):** horizontal scale to
+thousands of concurrent wars, and the billing/payments UI. Deferred to a later phase.
+
+### 1.1 Compute economics & the fairness levers
+
+The whole "a better build reliably wins" fantasy rests on two levers: **the model is
+frozen per war** and **a budget enforcer caps spend**. Both levers **break the instant
+players bring their own API keys** (wallet-determined models; un-cappable spend; a
+key-theft/abuse surface). Decision:
+
+- **Platform-controlled model access.** The platform holds the keys and resolves the
+  model per the war's ruleset; the runner never sees a player key. This keeps both
+  levers intact and makes every run's compute a known, capped quantity.
+- **Compute is per-match COGS** (N agent runs + judge pass + recap generation). Funding
+  (subscription / credits / platform-funded ranked runs) is a downstream business
+  layer that does **not** affect fairness as long as the platform controls the model.
+- **BYO-key is rejected in fair formats.** If ever offered, it is quarantined to a
+  clearly-labelled *unlimited/exhibition* format (e.g. Open War) where fairness is
+  explicitly waived — never on the ranked/season path.
 
 ---
 
@@ -165,6 +201,34 @@ war_package:
     tiebreakers: ["fewest_tokens", "fastest", "earliest_submission"]
     season_points_table: { "1st": 25, "2nd": 18, "3rd": 15, "4th": 12 }  # ...
 ```
+
+### 2.3 Task Supply (the content pipeline) — a first-order problem
+
+The entire integrity model rests on tasks being **secret, parameterized, and
+objectively gradable**. Producing a deep, fresh, leak-resistant, auto-gradable bank
+*fast enough to feed rotating formats* is **ongoing content engineering — a system we
+build, not markdown someone writes.** It is arguably the single most likely thing to
+kill the product in practice, and it gets strictly **worse at scale** (no task reuse;
+strangers leak-trade and memorize). It is therefore promoted here from an open
+question to a designed subsystem, with a matching first-order risk (§15).
+
+Design:
+
+- **Generators, not static tasks.** A task is a *parameterized template + generator*
+  that emits a fresh instance per war (randomized inputs/seeds). Memorizing one
+  instance doesn't help with the next. The War Package's `task.inputs` are generator
+  outputs, sealed until run time.
+- **Grader ships with the task.** Each task bundles its objective grader (unit tests,
+  exact/numeric match, measured cost/time) so correctness is machine truth wherever
+  possible — this is what lets ranked formats lean on objective grading (§8).
+- **Leak resistance.** Tasks revealed only at run time; instances are one-shot (never
+  re-served); on suspected leak, retire the template, not just the instance. Track
+  per-instance exposure.
+- **Tagging.** Difficulty + domain + grader-type tags drive ladder rotation and the
+  objective-vs-exhibition tiering.
+- **Sourcing curve.** Founder-authored generators first → reviewed contributor
+  generators → community authoring (with the author-can't-compete + review guards).
+  "Where do the next 50 wars come from?" must have a concrete answer before Phase 1.
 
 ---
 
@@ -353,10 +417,16 @@ clean auto-checks, a replay artifact, and cheap state isolation:
 
 **Determinism controls:** fixed seeds per run where the model supports them; `runs_per_agent: N` with averaged/median scoring; identical resolved configs across competitors for frozen layers. We treat residual non-determinism as real and *manage* it (averaging + appeals) rather than pretending it's absent.
 
-**Sandboxing (phased):** v1 trusts the friend group, so isolation targets *resource
-limits and accidental damage*, not defeating a malicious adversary — container with
-no host mounts, capped resources, egress allowlist per tool. Phase 3 hardens this
-(Firecracker microVMs, per-tenant isolation) before opening to strangers (§14).
+**Sandboxing — hostile-by-design seam (built progressively, designed now):** the
+orchestrator↔runner boundary is designed assuming the **runner is hostile** from day
+one, even though hardening ships in phases. The contract: the orchestrator hands the
+runner only a resolved config + sealed task + budget, and trusts *nothing* it returns
+beyond the signed transcript/artifacts; the runner holds no platform keys (model
+access is brokered — see §1.1) and no secrets. v1 ships container-level isolation (no
+host mounts, capped resources, egress allowlist per tool); because the seam treats the
+runner as untrusted, swapping container → **Firecracker microVM / per-tenant
+isolation** (Phase 3, before opening to strangers) is a *config change at the seam, not
+a rewrite*. This is the cheap-now / brutal-later principle from §1.
 
 ---
 
@@ -425,6 +495,21 @@ human only on close calls or Finals:
 - **Season points:** marquee placements award from a season-points table; accumulate
   across the season; **top 4 → Finals** bracket (single or double elimination).
 - **Medals:** awarded on marquee/Finals placements and special conditions (concept §8).
+- **Grading tiers (ranked leans objective).** Season Points and ladder rating are
+  driven primarily by **objectively-gradable** formats (auto-checks: tests, exact
+  match, measured cost/time). LLM-judged formats run as **exhibition / lower-weight**
+  until the judge is *calibrated against machine truth* (measure judge↔auto-check
+  agreement on objective tasks first). This protects the "a better build reliably
+  wins" fantasy from judge noise, and pre-empts the write-for-the-judge meta-game.
+- **Sybil / collusion seam.** Rating + identity assume accounts may multi-account or
+  feed each other wins. v1 doesn't enforce, but the seam exists: rating updates are
+  logged and head-to-head graphs are inspectable, so a ring of mutual wins is
+  detectable later (anomaly detection + account verification ship with Phase 3, §1).
+- **Graceful low-population behavior.** A near-empty ladder (friend phase) produces
+  statistically thin ranks/attribution, so the early product **leads with marquee
+  wars + great recaps**; the ladder/Glicko/attribution surface only once population
+  supports them (hide ranks below a match-count threshold; never let a sparse ladder
+  make the product feel dead).
 
 ### 8.1 Layer-Attribution Analytics (Meta Report — Phase 2+)
 
@@ -601,11 +686,13 @@ review, abuse/rate limiting at scale, cost/billing controls, sign-up flow.
 
 | Risk | Severity | Mitigation |
 |---|---|---|
-| Judge unreliability / bias | High | Authored rubrics, structured scoring, multi-run averaging, HITL on close calls. |
-| Cost runaway | High | Hard inline budgets, concurrency caps, cost-as-metric formats, observability. |
+| **Task supply** (can't author fresh, secret, gradable tasks fast enough; worsens at scale) | **Existential** | Treat as a built pipeline (§2.3): generators not static tasks, graders bundled, leak retirement, sourcing curve. Concrete "next 50 wars" answer required before Phase 1. |
+| **Judge unreliability / bias / write-for-judge meta** | High | Ranked leans **objective** grading (§8); LLM-judged is exhibition until judge↔auto-check agreement is measured; authored rubrics, quoted-evidence, multi-run averaging, HITL on close calls. |
+| Cost runaway / compute COGS | High | Platform-controlled models + hard inline budgets (§1.1); concurrency caps; cost-as-metric formats; observability. |
 | Non-determinism erodes trust | High | N runs, seeds, full logs, transparent appeals. |
+| **Sybil / collusion / multi-accounting** | Med→High at scale | Rating + identity seam assumes it (§8); logged head-to-heads detectable later; account verification + anomaly detection with Phase 3. |
+| Runner is hostile (untrusted agent code at scale) | Med→High | Orchestrator↔runner seam designed hostile now (§6); container v1 → microVM swap is config, not rewrite. |
 | Engine/UI coupling slows iteration | Med | Engine is a standalone core; UI is a client (Phase 0 before 1). |
-| Sandbox escape (later, public) | Med→High | Deferred to Phase 3 with microVM isolation before opening to strangers. |
 | Format imbalance / stale meta | Med | Rotating formats, season rule tweaks, meta reports. |
 | Attribution analytics misleads (small sample / confounding) | Med | Gate to Phase 2 behind a match-volume threshold; publish confidence intervals; present as correlation unless the layer was ruleset-frozen; start descriptive before regression (§8.1). |
 
@@ -613,12 +700,17 @@ review, abuse/rate limiting at scale, cost/billing controls, sign-up flow.
 
 ## 16. Open Questions (for planning)
 
-1. **Runner language:** Python vs TS Agent SDK for the Battle Engine (affects tool
-   ecosystem and team familiarity).
-2. **Strategy expression:** structured flags vs. free-form strategy prompt vs. both —
+1. **Strategy expression:** structured flags vs. free-form strategy prompt vs. both —
    affects Builder UX and how cleanly rulesets can constrain strategy.
-3. **Taskset sourcing:** how do we author a deep, secret, parameterized task bank
-   fast enough to keep wars fresh without leaks?
+2. **Funding model:** subscription vs credits vs platform-funded-ranked — a business
+   choice downstream of §1.1; it does not affect fairness (platform controls models)
+   but sets per-match COGS recovery.
+
+**Resolved since v1 draft:**
+- *Engine language* → **Python** (uv/pytest/ruff); web app Phase 1 in Next.js + FastAPI.
+- *Compute economics / who controls the model* → **platform-controlled** (§1.1).
+- *Taskset sourcing* → promoted from open question to a designed subsystem (§2.3) +
+  first-order risk (§15).
 
 *(Plus the creative open questions in the concept doc §13.)*
 
