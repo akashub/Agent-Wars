@@ -45,3 +45,56 @@ def test_run_war_ranks_solver_above_non_solver_and_persists(tmp_path):
     assert result.ranking[0][1].objective_points == 100.0
     assert result.ranking[1][1].objective_points == 0.0
     assert store.get_run("wp1::p::0")["content_hash"]
+
+
+def test_content_hash_ignores_nondeterministic_grade_detail(tmp_path, monkeypatch):
+    import agentwars.orchestrator as orch
+    from agentwars.autocheck import GradeResult
+
+    wp = _wp(tmp_path)
+    agents = [AgentDef(id="p", name="P", architect="@x", model="m")]
+
+    # Single counter shared across both run_war calls so run-0's detail
+    # differs between the two calls (s1 run0 → "0.01s", s2 run0 → "0.03s").
+    call_count = {"n": 0}
+
+    def fake_grade(baseline, diff, grader, workdir):
+        call_count["n"] += 1
+        return GradeResult(
+            passed=True,
+            tests_passed=2,
+            tests_total=2,
+            detail=f"2 passed in 0.0{call_count['n']}s",
+        )
+
+    monkeypatch.setattr(orch, "grade_diff", fake_grade)
+
+    s1 = Store(tmp_path / "s1")
+    s1.init_db()
+    run_war(
+        wp,
+        agents,
+        executor_for=lambda a: FakeExecutor(diff="x", final_text="f"),
+        judge=FakeJudge(0.5),
+        model=FakeModel(),
+        store=s1,
+        seed_base=1,
+        work_root=tmp_path / "w1",
+    )
+    h1 = s1.get_run("wp1::p::0")["content_hash"]
+
+    s2 = Store(tmp_path / "s2")
+    s2.init_db()
+    run_war(
+        wp,
+        agents,
+        executor_for=lambda a: FakeExecutor(diff="x", final_text="f"),
+        judge=FakeJudge(0.5),
+        model=FakeModel(),
+        store=s2,
+        seed_base=1,
+        work_root=tmp_path / "w2",
+    )
+    h2 = s2.get_run("wp1::p::0")["content_hash"]
+
+    assert h1 == h2  # identical despite differing grade.detail

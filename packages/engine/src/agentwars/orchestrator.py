@@ -47,8 +47,13 @@ def run_war(package: WarPackage, agents: list[AgentDef], *,
             run_scores.append(rs)
             agreements.append(1.0 if (shadow.overall >= 0.5) == grade.passed else 0.0)
             run_id = f"{package.id}::{agent.id}::{i}"
-            payload = json.dumps({"transcript": art.transcript, "grade": grade.__dict__},
-                                 sort_keys=True).encode()
+            payload = json.dumps(
+                {"transcript": art.transcript,
+                 "grade": {"passed": grade.passed,
+                           "tests_passed": grade.tests_passed,
+                           "tests_total": grade.tests_total}},
+                sort_keys=True,
+            ).encode()
             h = store.put_transcript(run_id, payload)
             store.record_run(run_id=run_id, war_id=package.id,
                              agent_version=f"{agent.id}@1", seed=seed,
