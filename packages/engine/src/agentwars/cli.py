@@ -1,0 +1,75 @@
+from __future__ import annotations
+
+import tempfile
+from pathlib import Path
+
+import typer
+
+from .fakes import FakeExecutor, FakeJudge, FakeModel
+from .loader import load_agent, load_package
+from .orchestrator import run_war
+from .store import Store
+
+app = typer.Typer(help="Agent Wars engine CLI")
+
+
+@app.command()
+def validate(path: str) -> None:
+    """Validate an agent (.yaml) or a war package (directory)."""
+    if Path(path).is_dir():
+        wp = load_package(path)
+        typer.echo(f"valid war package: {wp.id} ({wp.format})")
+    else:
+        a = load_agent(path)
+        typer.echo(f"valid agent: {a.id} by {a.architect}")
+
+
+@app.command("run-war")
+def run_war_cmd(
+    package_dir: str,
+    agents: list[str] = typer.Option(..., "--agents"),
+    store: str = typer.Option(".aw-store", "--store"),
+    work: str = typer.Option("", "--work", help="work dir; default: an isolated temp dir"),
+    live: bool = typer.Option(False, "--live", help="Use real Claude adapters (network)"),
+) -> None:
+    """Run a war package against a set of agents."""
+    work_dir = Path(work) if work else Path(tempfile.mkdtemp(prefix="aw-work-"))
+    wp = load_package(package_dir)
+    loaded = [load_agent(a) for a in agents]
+    st = Store(Path(store))
+    st.init_db()
+
+    if live:
+        from .live.agentsdk_executor import AgentSdkExecutor  # noqa: PLC0415
+        from .live.claude_judge import ClaudeJudge  # noqa: PLC0415
+        from .live.model_broker import AnthropicModelHandle  # noqa: PLC0415
+
+        model = AnthropicModelHandle()
+        judge = ClaudeJudge()
+
+        def executor_for(_a):
+            return AgentSdkExecutor()
+
+    else:
+        model = FakeModel()
+        judge = FakeJudge(0.5)
+
+        def executor_for(a):
+            return FakeExecutor(diff="", final_text=a.name)
+
+    result = run_war(
+        wp,
+        loaded,
+        executor_for=executor_for,
+        judge=judge,
+        model=model,
+        store=st,
+        seed_base=1,
+        work_root=work_dir,
+    )
+    typer.echo("Ranking:")
+    for i, (aid, score) in enumerate(result.ranking, 1):
+        typer.echo(
+            f"  {i}. {aid}  objective={score.objective_points}  avg_tokens={score.avg_tokens}"
+        )
+    typer.echo(f"Judge agreement (shadow): {result.judge_agreement}")
