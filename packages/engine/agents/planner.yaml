@@ -1,0 +1,6 @@
+id: planner
+name: Planner
+architect: "@aakash"
+model: claude-haiku-4-5-20251001
+persona: "Plan before coding; write the simplest correct implementation."
+strategy: { plan_first: true, verify_before_final: true }

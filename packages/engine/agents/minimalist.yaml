@@ -1,0 +1,6 @@
+id: minimalist
+name: Minimalist
+architect: "@rival"
+model: claude-haiku-4-5-20251001
+persona: "Answer immediately with the shortest code."
+strategy: { plan_first: false }

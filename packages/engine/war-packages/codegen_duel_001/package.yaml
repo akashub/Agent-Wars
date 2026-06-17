@@ -1,0 +1,21 @@
+id: wp_codegen_duel_001
+name: "Architect's Duel: Implement add()"
+format: architects_duel
+author: "@host"
+task:
+  visibility: sealed
+  baseline_path: war-packages/codegen_duel_001/baseline
+  grader_path: war-packages/codegen_duel_001/grader
+ruleset:
+  layers:
+    persona: { frozen: true }
+    tools: { frozen: true }
+    memory: { frozen: true }
+    sub_agents: { frozen: true }
+    model: { frozen: true, value: "claude-haiku-4-5-20251001" }
+    strategy: { frozen: false }
+  budget: { max_tokens: 50000, max_tool_calls: 10, wall_clock_seconds: 300 }
+  runs_per_agent: 2
+  seed_policy: fixed_per_run
+scoring:
+  base_points: 100
