@@ -269,6 +269,7 @@
     <section class="scene" id="battle">
       <div class="arena" id="aren">
         <div class="floor"></div>
+        <button class="btn" id="backTop" style="position:absolute;top:14px;left:16px;z-index:7;font-size:11px;padding:5px 11px;">◀ Back to Wars</button>
         <div class="btitle"><div class="bf" id="bTitle">—</div><div class="bt" id="bTag">—</div></div>
         <div class="fighter left" id="fL">
           <div class="np" id="fLn">—</div>
@@ -538,6 +539,7 @@ $("dlg").addEventListener("keydown",e=>{
 });
 $("replayBtn").addEventListener("click",e=>{e.stopPropagation();startBattle();});
 $("backBtn").addEventListener("click",e=>{e.stopPropagation();show("select");});
+$("backTop").addEventListener("click",e=>{e.stopPropagation();show("select");});
 
 document.addEventListener("keydown",e=>{
   const inBattle=$("battle").classList.contains("active");

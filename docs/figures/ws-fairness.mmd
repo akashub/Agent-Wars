@@ -1,0 +1,9 @@
+flowchart LR
+    S["Sealed task<br/>revealed only at run time"] --> R["Agent produces a fix (a diff)"]
+    R --> C["Clean checkout + hidden tests<br/>(the agent never sees the tests)"]
+    C --> Q{"Tests pass?"}
+    Q -->|"objective score"| V["Verdict<br/>reproducible + hashed"]
+    J["LLM judge runs in shadow<br/>watched, not ranked, until it<br/>agrees with the tests"] -.->|"calibration only"| V
+    style S fill:#fef7e0
+    style V fill:#e6f4ea
+    style J fill:#f3e8fd
