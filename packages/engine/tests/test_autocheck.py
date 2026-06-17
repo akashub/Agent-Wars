@@ -1,0 +1,38 @@
+from agentwars.autocheck import GradeResult, grade_diff, parse_pytest_summary
+
+GOOD_DIFF = """\
+--- a/solution.py
++++ b/solution.py
+@@ -1,2 +1,2 @@
+ def add(a, b):
+-    raise NotImplementedError
++    return a + b
+"""
+
+def _fixture(tmp_path):
+    base = tmp_path / "baseline"
+    base.mkdir()
+    (base / "solution.py").write_text("def add(a, b):\n    raise NotImplementedError\n")
+    grader = tmp_path / "grader"
+    grader.mkdir()
+    (grader / "test_solution.py").write_text(
+        "from solution import add\n"
+        "def test_add(): assert add(2, 3) == 5\n"
+        "def test_add_neg(): assert add(-1, 1) == 0\n")
+    return base, grader
+
+def test_parse_pytest_summary():
+    assert parse_pytest_summary("2 passed in 0.01s") == (2, 2)
+    assert parse_pytest_summary("1 failed, 1 passed in 0.02s") == (1, 2)
+    assert parse_pytest_summary("no tests ran in 0.00s") == (0, 0)
+
+def test_good_diff_passes_hidden_tests(tmp_path):
+    base, grader = _fixture(tmp_path)
+    res = grade_diff(base, GOOD_DIFF, grader, tmp_path / "work")
+    assert isinstance(res, GradeResult)
+    assert res.passed and res.tests_passed == 2 and res.tests_total == 2
+
+def test_grader_not_left_in_agent_view(tmp_path):
+    base, grader = _fixture(tmp_path)
+    assert not (base / "test_solution.py").exists()
+    assert list(base.glob("test_*.py")) == []
