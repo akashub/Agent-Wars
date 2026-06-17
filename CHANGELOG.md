@@ -6,6 +6,18 @@ date rather than semantic version until the first release.
 
 ## [Unreleased]
 
+### Shipped — Phase 0 Track A: engine core (branch `phase0/engine-core`)
+Built subagent-driven (TDD per task) in `packages/engine/` (Python/uv): schemas, ruleset
+resolution, fs+sqlite store with SHA-256 hashing, inline budget enforcer, executor/judge
+protocols + fakes (brokered handle, no keys), the objective grader (clean checkout + diff
++ hidden tests, isolated from the agent worktree), injection-safe quoted-evidence judge
+prompt, objective scoring with **shadow-mode** judge, the orchestrator (`run_war`), Typer
+CLI (`aw validate` / `aw run-war`), example Architect's Duel war package + agents, a
+deterministic e2e gate, and live Anthropic adapters (gated smoke). **27 tests + 1 gated
+skip, ruff clean.** Fixed a content-hash determinism bug (excluded nondeterministic pytest
+timing from the hash). Known minor: live fence-parse uses `lstrip("python")` (B005 footgun)
+— harmless in Phase 0's gated live path, switch to `removeprefix` in Phase 1.
+
 ### Added
 - `CLAUDE.md` — project operating manual: hard rules (incl. spec-derived integrity
   rules), Python engine stack, mandatory dev workflow, directory layout, phasing.

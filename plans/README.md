@@ -20,5 +20,5 @@ contract for the session; if scope changes mid-session, update the plan.
 
 | Date | Plan | Phase | Status |
 |---|---|---|---|
-| 2026-06-16 | [Phase 0 — Engine Core (Track A)](2026-06-16-1119-phase-0-engine-core.md) | 0 | executing |
-| 2026-06-17 | [Phase 0 — Frontend / Guild Vault (Track B)](2026-06-17-1115-phase-0-frontend.md) | 0 | ready |
+| 2026-06-16 | [Phase 0 — Engine Core (Track A)](2026-06-16-1119-phase-0-engine-core.md) | 0 | ✅ complete (branch `phase0/engine-core`, 27 tests) |
+| 2026-06-17 | [Phase 0 — Frontend / Guild Vault (Track B)](2026-06-17-1115-phase-0-frontend.md) | 0 | ready (next) |
