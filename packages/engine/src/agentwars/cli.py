@@ -30,7 +30,7 @@ def run_war_cmd(
     agents: list[str] = typer.Option(..., "--agents"),
     store: str = typer.Option(".aw-store", "--store"),
     work: str = typer.Option("", "--work", help="work dir; default: an isolated temp dir"),
-    live: bool = typer.Option(False, "--live", help="Use real Claude adapters (network)"),
+    live: bool = typer.Option(False, "--live", help="Use any provider via litellm (network)"),
 ) -> None:
     """Run a war package against a set of agents."""
     work_dir = Path(work) if work else Path(tempfile.mkdtemp(prefix="aw-work-"))
@@ -40,19 +40,21 @@ def run_war_cmd(
     st.init_db()
 
     if live:
-        from .live.agentsdk_executor import AgentSdkExecutor  # noqa: PLC0415
-        from .live.claude_judge import ClaudeJudge  # noqa: PLC0415
-        from .live.model_broker import AnthropicModelHandle  # noqa: PLC0415
+        from .live.llm_judge import LLMJudge  # noqa: PLC0415
+        from .live.llm_provider import model_handle_for  # noqa: PLC0415
+        from .live.single_turn_executor import SingleTurnExecutor  # noqa: PLC0415
 
-        model = AnthropicModelHandle()
-        judge = ClaudeJudge()
+        model_factory = model_handle_for
+        judge = LLMJudge()
 
         def executor_for(_a):
-            return AgentSdkExecutor()
+            return SingleTurnExecutor()
 
     else:
-        model = FakeModel()
         judge = FakeJudge(0.5)
+
+        def model_factory(_m):
+            return FakeModel()
 
         def executor_for(a):
             return FakeExecutor(diff="", final_text=a.name)
@@ -62,7 +64,7 @@ def run_war_cmd(
         loaded,
         executor_for=executor_for,
         judge=judge,
-        model=model,
+        model_factory=model_factory,
         store=st,
         seed_base=1,
         work_root=work_dir,

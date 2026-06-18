@@ -6,7 +6,7 @@ from ..judge_prompt import build_judge_messages
 from ..protocols import JudgeVerdict, ModelHandle
 
 
-class ClaudeJudge:
+class LLMJudge:
     def evaluate(self, *, evidence: str, rubric: str, criteria: list[str],
                  model: ModelHandle) -> JudgeVerdict:
         msgs = build_judge_messages(evidence=evidence, rubric=rubric, criteria=criteria)

@@ -11,7 +11,19 @@ PROMPT = ("You are competing in a code war. Edit files in the working directory 
           "the hidden tests pass. Persona: {persona}. When done, output only the final code.")
 
 
-class AgentSdkExecutor:
+def _extract_code(text: str) -> str:
+    if "```" in text:
+        parts = text.split("```")
+        block = parts[1] if len(parts) > 1 else text
+        if "\n" in block:
+            first, rest = block.split("\n", 1)
+            if first.strip().isalpha():   # drop a leading language-tag line like "python"
+                block = rest
+        return block.strip() + "\n"
+    return text.strip() + "\n"
+
+
+class SingleTurnExecutor:
     """Minimal Phase-0 adapter: one model turn that rewrites solution.py, then git diff.
 
     A richer Agent SDK loop (tools, sub-agents) replaces this body in Phase 1; the
@@ -35,9 +47,7 @@ class AgentSdkExecutor:
         ]
         resp = model.complete(msgs, max_tokens=1024)
         budget.charge(tokens=resp.tokens_in + resp.tokens_out)
-        code = resp.text
-        if "```" in code:
-            code = code.split("```")[1].lstrip("python").strip() + "\n"
+        code = _extract_code(resp.text)
         (work / "solution.py").write_text(code)
         diff = subprocess.run(["git", "diff"], cwd=work, capture_output=True, text=True).stdout
         return RunArtifacts(

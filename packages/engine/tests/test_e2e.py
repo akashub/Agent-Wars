@@ -29,7 +29,7 @@ def _run(tmp_path):
         agents,
         executor_for=lambda a: ex[a.id],
         judge=FakeJudge(1.0),
-        model=FakeModel(),
+        model_factory=lambda _m: FakeModel(),
         store=st,
         seed_base=1,
         work_root=tmp_path / "w",

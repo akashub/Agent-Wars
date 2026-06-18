@@ -38,8 +38,8 @@ def test_run_war_ranks_solver_above_non_solver_and_persists(tmp_path):
     store = Store(tmp_path / "store")
     store.init_db()
     result = run_war(wp, agents, executor_for=lambda a: executors[a.id],
-                     judge=FakeJudge(0.5), model=FakeModel(), store=store, seed_base=1,
-                     work_root=tmp_path / "work")
+                     judge=FakeJudge(0.5), model_factory=lambda _m: FakeModel(),
+                     store=store, seed_base=1, work_root=tmp_path / "work")
     assert isinstance(result, WarResult)
     assert result.ranking[0][0] == "p"
     assert result.ranking[0][1].objective_points == 100.0
@@ -76,7 +76,7 @@ def test_content_hash_ignores_nondeterministic_grade_detail(tmp_path, monkeypatc
         agents,
         executor_for=lambda a: FakeExecutor(diff="x", final_text="f"),
         judge=FakeJudge(0.5),
-        model=FakeModel(),
+        model_factory=lambda _m: FakeModel(),
         store=s1,
         seed_base=1,
         work_root=tmp_path / "w1",
@@ -90,7 +90,7 @@ def test_content_hash_ignores_nondeterministic_grade_detail(tmp_path, monkeypatc
         agents,
         executor_for=lambda a: FakeExecutor(diff="x", final_text="f"),
         judge=FakeJudge(0.5),
-        model=FakeModel(),
+        model_factory=lambda _m: FakeModel(),
         store=s2,
         seed_base=1,
         work_root=tmp_path / "w2",

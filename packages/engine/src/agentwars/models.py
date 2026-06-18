@@ -64,6 +64,11 @@ class AgentDef(BaseModel):
         return v
 
 
+class Referee(BaseModel):
+    judge_model: str = "gpt-4o-mini"
+    rubric: str = "reward correct, simple code"
+
+
 class WarPackage(BaseModel):
     id: str
     name: str
@@ -72,3 +77,4 @@ class WarPackage(BaseModel):
     task: TaskSpec
     ruleset: Ruleset
     scoring: Scoring = Field(default_factory=Scoring)
+    referee: Referee = Field(default_factory=Referee)
