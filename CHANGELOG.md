@@ -6,6 +6,19 @@ date rather than semantic version until the first release.
 
 ## [Unreleased]
 
+### Changed — engine is now provider & model agnostic (branch `phase0/provider-agnostic`)
+- **Any model of any provider via litellm.** `LiteLLMModelHandle` + `model_handle_for`
+  route by model string (`gpt-4o`, `claude-…`, `gemini/…`); keys read per-provider from
+  env. `run_war` now takes a `model_factory` — **each competitor runs on its own model**,
+  the judge on `WarPackage.referee.judge_model` (independent by default; shadow-only when a
+  format frees the Model layer). Renamed the misleadingly Claude-named live adapters to
+  provider-neutral (`single_turn_executor`, `llm_judge`); removed the Anthropic-only handle;
+  fixed the fenced-code extractor. Corrects the earlier Anthropic-only live adapter.
+- **3 complex sealed tasks** (single-file, graduated hidden tests for score spread):
+  `wp_lru_cache`, `wp_balanced_brackets`, and `wp_open_roman` (an **Open War** — Model layer
+  free, so the two agents run *different* models). All packages use OpenAI model strings so
+  one `OPENAI_API_KEY` runs everything; added `gpt-4o` / `gpt-4o-mini` agents.
+
 ### Shipped — Phase 0 Track A: engine core (branch `phase0/engine-core`)
 Built subagent-driven (TDD per task) in `packages/engine/` (Python/uv): schemas, ruleset
 resolution, fs+sqlite store with SHA-256 hashing, inline budget enforcer, executor/judge

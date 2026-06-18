@@ -308,7 +308,7 @@ Pragmatic for a friends+show v1 with a clean path to scale. Deployable on Railwa
 |---|---|---|
 | Frontend | **Next.js + TypeScript + Tailwind** | Fast to build rich dashboards; SSR for shareable recap/replay pages. |
 | API | **Node + TypeScript (Fastify/Nest)** *or* Next API routes | Shared types with frontend; simple to start. |
-| Agent runtime | **Claude Agent SDK (TS or Python)** | First-class agent loop, tools, sub-agents; matches the layer model. |
+| Agent runtime / LLM | **Provider-agnostic via litellm** | Any model of any provider by model string (`gpt-4o`, `claude-…`, `gemini/…`); keys per-provider from env; all routing behind one `ModelHandle` seam. Per-competitor models + an independent `referee.judge_model`. (The Model layer is competable, so this is a core requirement, not Claude-specific.) |
 | Queue | **Redis + BullMQ** | Battle-tested job queue; war/run fan-out, retries, scheduling. |
 | DB | **PostgreSQL** | Relational integrity for wars/scores/seasons; JSONB for flexible schemas. |
 | Object store | **S3-compatible** (Railway volume / R2 / S3) | Transcripts, replays, artifacts, banners. |
