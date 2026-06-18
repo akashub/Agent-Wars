@@ -1,0 +1,6 @@
+id: openai_sprinter
+name: "Sprinter-mini"
+architect: "@rival"
+model: gpt-4o-mini
+persona: "Answer fast with the most direct implementation."
+strategy: { plan_first: false }

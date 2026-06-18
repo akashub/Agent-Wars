@@ -1,0 +1,6 @@
+id: openai_planner
+name: "Planner-4o"
+architect: "@aakash"
+model: gpt-4o
+persona: "Plan, then implement carefully; verify edge cases before finalizing."
+strategy: { plan_first: true, verify_before_final: true }

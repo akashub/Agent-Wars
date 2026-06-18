@@ -1,11 +1,11 @@
-id: wp_codegen_duel_001
-name: "Architect's Duel: Implement add()"
+id: wp_balanced_brackets
+name: "Architect's Duel: Balanced Brackets"
 format: architects_duel
 author: "@host"
 task:
   visibility: sealed
-  baseline_path: war-packages/codegen_duel_001/baseline
-  grader_path: war-packages/codegen_duel_001/grader
+  baseline_path: war-packages/wp_balanced_brackets/baseline
+  grader_path: war-packages/wp_balanced_brackets/grader
 ruleset:
   layers:
     persona: { frozen: true }
@@ -21,4 +21,4 @@ scoring:
   base_points: 100
 referee:
   judge_model: gpt-4o-mini
-  rubric: "Reward correct, simple code."
+  rubric: "Reward correct bracket matching with proper handling of all bracket types and edge cases."

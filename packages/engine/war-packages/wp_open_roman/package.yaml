@@ -1,18 +1,18 @@
-id: wp_codegen_duel_001
-name: "Architect's Duel: Implement add()"
-format: architects_duel
+id: wp_open_roman
+name: "Open War: Roman Numerals"
+format: open_war
 author: "@host"
 task:
   visibility: sealed
-  baseline_path: war-packages/codegen_duel_001/baseline
-  grader_path: war-packages/codegen_duel_001/grader
+  baseline_path: war-packages/wp_open_roman/baseline
+  grader_path: war-packages/wp_open_roman/grader
 ruleset:
   layers:
     persona: { frozen: true }
     tools: { frozen: true }
     memory: { frozen: true }
     sub_agents: { frozen: true }
-    model: { frozen: true, value: "gpt-4o-mini" }
+    model: { frozen: false }
     strategy: { frozen: false }
   budget: { max_tokens: 50000, max_tool_calls: 10, wall_clock_seconds: 300 }
   runs_per_agent: 2
@@ -21,4 +21,4 @@ scoring:
   base_points: 100
 referee:
   judge_model: gpt-4o-mini
-  rubric: "Reward correct, simple code."
+  rubric: "Reward correct Roman numeral conversion including all subtractive forms."

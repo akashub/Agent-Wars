@@ -1,11 +1,11 @@
-id: wp_codegen_duel_001
-name: "Architect's Duel: Implement add()"
+id: wp_lru_cache
+name: "Architect's Duel: LRU Cache"
 format: architects_duel
 author: "@host"
 task:
   visibility: sealed
-  baseline_path: war-packages/codegen_duel_001/baseline
-  grader_path: war-packages/codegen_duel_001/grader
+  baseline_path: war-packages/wp_lru_cache/baseline
+  grader_path: war-packages/wp_lru_cache/grader
 ruleset:
   layers:
     persona: { frozen: true }
@@ -21,4 +21,4 @@ scoring:
   base_points: 100
 referee:
   judge_model: gpt-4o-mini
-  rubric: "Reward correct, simple code."
+  rubric: "Reward correct, efficient LRU cache implementation with O(1) get/put."
