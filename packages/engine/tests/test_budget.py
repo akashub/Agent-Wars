@@ -20,3 +20,9 @@ def test_tool_calls_and_time():
         be.charge(tool_calls=1)
     with pytest.raises(BudgetExceeded):
         be.check_time()
+
+def test_remaining_tokens_tracks_usage():
+    be = BudgetEnforcer(Budget(max_tokens=1000, max_tool_calls=5, wall_clock_seconds=999))
+    assert be.remaining_tokens() == 1000
+    be.charge(tokens=300)
+    assert be.remaining_tokens() == 700

@@ -29,3 +29,6 @@ class BudgetEnforcer:
     def check_time(self) -> None:
         if self._now() - self._start > self._b.wall_clock_seconds:
             raise BudgetExceeded("wall-clock budget exhausted")
+
+    def remaining_tokens(self) -> int:
+        return max(0, self._b.max_tokens - self.used["tokens"])

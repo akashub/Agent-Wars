@@ -45,7 +45,10 @@ class SingleTurnExecutor:
             {"role": "system", "content": PROMPT.format(persona=agent.persona)},
             {"role": "user", "content": user_msg},
         ]
-        resp = model.complete(msgs, max_tokens=1024)
+        # Output cap derived from the run budget (never the old hardcoded 1024, which
+        # truncated long solutions on hard tasks); 8192 is a safe single-file ceiling.
+        max_out = min(budget.remaining_tokens(), 8192)
+        resp = model.complete(msgs, max_tokens=max_out)
         budget.charge(tokens=resp.tokens_in + resp.tokens_out)
         code = _extract_code(resp.text)
         (work / "solution.py").write_text(code)

@@ -28,7 +28,8 @@ def parse_pytest_summary(text: str) -> tuple[int, int]:
     return passed, passed + failed
 
 
-def grade_diff(baseline_dir: Path, diff_text: str, grader_dir: Path, workdir: Path) -> GradeResult:
+def grade_diff(baseline_dir: Path, diff_text: str, grader_dir: Path, workdir: Path,
+               timeout: int = 60) -> GradeResult:
     if workdir.exists():
         shutil.rmtree(workdir)
     shutil.copytree(baseline_dir, workdir)
@@ -44,9 +45,12 @@ def grade_diff(baseline_dir: Path, diff_text: str, grader_dir: Path, workdir: Pa
         return GradeResult(False, 0, 0, f"diff did not apply: {applied.stderr.strip()}")
     for t in grader_dir.glob("test_*.py"):
         shutil.copy(t, workdir / t.name)
-    proc = subprocess.run([sys.executable, "-m", "pytest", "-q", "--tb=no",
-                           "-p", "no:cacheprovider", str(workdir)],
-                          cwd=workdir, capture_output=True, text=True)
+    try:
+        proc = subprocess.run([sys.executable, "-m", "pytest", "-q", "--tb=no",
+                               "-p", "no:cacheprovider", str(workdir)],
+                              cwd=workdir, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return GradeResult(False, 0, 0, f"grader timed out after {timeout}s")
     passed, total = parse_pytest_summary(proc.stdout + proc.stderr)
     return GradeResult(passed=(total > 0 and passed == total),
                        tests_passed=passed, tests_total=total, detail=proc.stdout[-500:])
