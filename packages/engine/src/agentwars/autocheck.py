@@ -37,17 +37,20 @@ def grade_diff(baseline_dir: Path, diff_text: str, grader_dir: Path, workdir: Pa
     subprocess.run(["git", "add", "-A"], cwd=workdir, check=True)
     subprocess.run(["git", "-c", "user.email=e@e", "-c", "user.name=n",
                     "commit", "-qm", "base"], cwd=workdir, check=True)
-    (workdir / "_agent.diff").write_text(diff_text)
-    applied = subprocess.run(["git", "apply", "_agent.diff"], cwd=workdir,
-                             capture_output=True, text=True)
-    (workdir / "_agent.diff").unlink()
-    if applied.returncode != 0:
-        return GradeResult(False, 0, 0, f"diff did not apply: {applied.stderr.strip()}")
+    if diff_text.strip():
+        (workdir / "_agent.diff").write_text(diff_text)
+        applied = subprocess.run(["git", "apply", "_agent.diff"], cwd=workdir,
+                                 capture_output=True, text=True)
+        (workdir / "_agent.diff").unlink()
+        if applied.returncode != 0:
+            return GradeResult(False, 0, 0, f"diff did not apply: {applied.stderr.strip()}")
+    copied = []
     for t in grader_dir.glob("test_*.py"):
         shutil.copy(t, workdir / t.name)
+        copied.append(t.name)
     try:
         proc = subprocess.run([sys.executable, "-m", "pytest", "-q", "--tb=no",
-                               "-p", "no:cacheprovider", str(workdir)],
+                               "-p", "no:cacheprovider", *copied],
                               cwd=workdir, capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
         return GradeResult(False, 0, 0, f"grader timed out after {timeout}s")

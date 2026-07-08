@@ -37,6 +37,26 @@ def test_grader_not_left_in_agent_view(tmp_path):
     assert not (base / "test_solution.py").exists()
     assert list(base.glob("test_*.py")) == []
 
+def test_grader_ignores_public_test_in_baseline(tmp_path):
+    # A public_test.py living in baseline must NOT be counted by the referee's grade.
+    base = tmp_path / "baseline"
+    base.mkdir()
+    (base / "solution.py").write_text("def add(a, b):\n    return a + b\n")
+    (base / "public_test.py").write_text(
+        "from solution import add\n"
+        "def test_pub1(): assert add(1, 1) == 2\n"
+        "def test_pub2(): assert add(2, 2) == 4\n")
+    grader = tmp_path / "grader"
+    grader.mkdir()
+    (grader / "test_solution.py").write_text(
+        "from solution import add\ndef test_hidden(): assert add(3, 4) == 7\n")
+    # identity diff (solution already correct) so we isolate the counting behavior
+    diff = ""
+    res = grade_diff(base, diff, grader, tmp_path / "work")
+    # Only the 1 hidden test counts — not the 2 public tests.
+    assert res.tests_total == 1 and res.tests_passed == 1 and res.passed
+
+
 def test_grader_times_out_on_infinite_loop(tmp_path):
     # An agent solution that hangs must not hang the grader; it fails cleanly.
     base = tmp_path / "baseline"
