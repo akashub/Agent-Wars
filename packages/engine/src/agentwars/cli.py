@@ -30,7 +30,9 @@ def run_war_cmd(
     agents: list[str] = typer.Option(..., "--agents"),
     store: str = typer.Option(".aw-store", "--store"),
     work: str = typer.Option("", "--work", help="work dir; default: an isolated temp dir"),
-    live: bool = typer.Option(False, "--live", help="Use any provider via litellm (network)"),
+    live: bool = typer.Option(
+        False, "--live", help="run agents via strategy-driven agent loop (network)"
+    ),
 ) -> None:
     """Run a war package against a set of agents."""
     work_dir = Path(work) if work else Path(tempfile.mkdtemp(prefix="aw-work-"))
@@ -40,15 +42,15 @@ def run_war_cmd(
     st.init_db()
 
     if live:
+        from .live.agent_loop_executor import AgentLoopExecutor  # noqa: PLC0415
         from .live.llm_judge import LLMJudge  # noqa: PLC0415
         from .live.llm_provider import model_handle_for  # noqa: PLC0415
-        from .live.single_turn_executor import SingleTurnExecutor  # noqa: PLC0415
 
         model_factory = model_handle_for
         judge = LLMJudge()
 
         def executor_for(_a):
-            return SingleTurnExecutor()
+            return AgentLoopExecutor()
 
     else:
         judge = FakeJudge(0.5)

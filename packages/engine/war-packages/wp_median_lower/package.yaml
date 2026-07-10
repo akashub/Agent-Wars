@@ -1,0 +1,24 @@
+id: wp_median_lower
+name: "Open War: Lower-Median (mind the spec)"
+format: open_war
+author: "@host"
+task:
+  visibility: sealed
+  baseline_path: war-packages/wp_median_lower/baseline
+  grader_path: war-packages/wp_median_lower/grader
+ruleset:
+  layers:
+    persona: { frozen: false }
+    tools: { frozen: true }
+    memory: { frozen: true }
+    sub_agents: { frozen: true }
+    model: { frozen: false }
+    strategy: { frozen: false }
+  budget: { max_tokens: 60000, max_tool_calls: 10, wall_clock_seconds: 300 }
+  runs_per_agent: 1
+  seed_policy: fixed_per_run
+scoring:
+  base_points: 100
+referee:
+  judge_model: gpt-4o-mini
+  rubric: "reward correct, spec-faithful, robust code"

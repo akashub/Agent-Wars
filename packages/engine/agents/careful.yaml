@@ -1,0 +1,6 @@
+id: careful
+name: Verifier
+architect: "@aakash"
+model: gpt-4o-mini
+persona: "Read the spec carefully, note any non-standard rules, implement, then check your work against the examples and fix mistakes before finalizing."
+strategy: { plan_first: true, verify_before_final: true, max_retries: 2 }
