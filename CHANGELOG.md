@@ -6,6 +6,23 @@ date rather than semantic version until the first release.
 
 ## [Unreleased]
 
+### Added — the `strategy` layer is now real (self-repair agent loop)
+- **`AgentLoopExecutor`** — a configurable self-repair loop (plan → generate → public
+  check → reflect → retry ≤ `max_retries` → final; budget-bounded; best-so-far on
+  exhaustion). `strategy={}` behaves as one-shot; the build drives the loop. Grounded in
+  2026 harness-engineering / self-repair research (design:
+  `docs/superpowers/specs/2026-07-08-agent-loop-executor-design.md`).
+- **Sealing preserved:** loop feedback is a **public** signal only (`public_check` over a
+  visible `baseline/public_test.py`, or a smoke import); the referee still scores on the
+  **hidden** grader once. `grade_diff` now scores only the hidden grader files.
+- **Proven build separation** (real pipeline, deterministic model) on `wp_median_lower`:
+  a plan+verify+retry build scores **100** vs a one-shot build **40** on the *same model*.
+- Two end-to-end bugs found + fixed: stale `__pycache__` served old code to the check
+  subprocess; executor work dirs lived inside the package tree (public-check pytest then
+  inherited the engine `pyproject.toml` and collected 0 tests). Both fixed (isolated
+  tempdir + cache clear) with regression tests. CLI `--live` now uses the loop executor.
+
+
 ### Changed — engine is now provider & model agnostic (branch `phase0/provider-agnostic`)
 - **Any model of any provider via litellm.** `LiteLLMModelHandle` + `model_handle_for`
   route by model string (`gpt-4o`, `claude-…`, `gemini/…`); keys read per-provider from
