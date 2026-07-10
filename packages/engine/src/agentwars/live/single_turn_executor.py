@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 from ..budget import BudgetEnforcer
@@ -32,9 +34,10 @@ class SingleTurnExecutor:
 
     def run(self, agent: ResolvedAgent, task_dir: Path, *, model: ModelHandle,
             budget: BudgetEnforcer, seed: int) -> RunArtifacts:
-        work = task_dir.parent / f"_live_{seed}"
-        subprocess.run(["rm", "-rf", str(work)], check=False)
-        subprocess.run(["cp", "-r", str(task_dir), str(work)], check=True)
+        # Isolated tempdir (NOT inside the package tree) — keeps run artifacts out of
+        # the repo and avoids inheriting a surrounding pyproject during any subprocess.
+        work = Path(tempfile.mkdtemp(prefix=f"aw-live-{seed}-"))
+        shutil.copytree(task_dir, work, dirs_exist_ok=True)
         subprocess.run(["git", "init", "-q"], cwd=work, check=True)
         subprocess.run(["git", "add", "-A"], cwd=work, check=True)
         subprocess.run(["git", "-c", "user.email=e@e", "-c", "user.name=n",

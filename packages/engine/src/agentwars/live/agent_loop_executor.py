@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 from ..budget import BudgetEnforcer, BudgetExceeded
@@ -30,9 +32,11 @@ class AgentLoopExecutor:
         budget: BudgetEnforcer,
         seed: int,
     ) -> RunArtifacts:
-        work = task_dir.parent / f"_loop_{seed}"
-        subprocess.run(["rm", "-rf", str(work)], check=False)
-        subprocess.run(["cp", "-r", str(task_dir), str(work)], check=True)
+        # Isolated tempdir (NOT inside the package tree) so the public-check pytest
+        # never inherits a surrounding pyproject.toml (testpaths/filterwarnings) and
+        # collects the task's public tests correctly.
+        work = Path(tempfile.mkdtemp(prefix=f"aw-loop-{seed}-"))
+        shutil.copytree(task_dir, work, dirs_exist_ok=True)
         subprocess.run(["git", "init", "-q"], cwd=work, check=True)
         subprocess.run(["git", "add", "-A"], cwd=work, check=True)
         subprocess.run(

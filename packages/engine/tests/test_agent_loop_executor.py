@@ -99,3 +99,28 @@ def test_budget_exhaustion_returns_best_so_far(tmp_path):
     )
     assert art.final_text.strip() != ""
     assert art.halted_reason == "budget_exhausted"
+
+
+def test_public_check_works_when_task_nested_in_a_pytest_package(tmp_path):
+    # Regression: the executor's work dir must be isolated so the public-check pytest
+    # does NOT inherit a surrounding pyproject.toml (which would collect 0 tests).
+    pkg = tmp_path / "pkg"
+    pkg.mkdir()
+    (pkg / "pyproject.toml").write_text(
+        '[tool.pytest.ini_options]\nfilterwarnings = ["error"]\ntestpaths = ["tests"]\n')
+    d = pkg / "task"
+    d.mkdir()
+    (d / "solution.py").write_text(STUB)
+    (d / "public_test.py").write_text(PUBLIC)
+    ex = AgentLoopExecutor()
+    art = ex.run(
+        _agent({"verify_before_final": True, "max_retries": 1}),
+        d,
+        model=ScriptedModel([BROKEN, FIXED]),
+        budget=_budget(),
+        seed=1,
+    )
+    checks = [t for t in art.transcript if t["type"] == "check"]
+    assert checks and all(c["n_total"] == 2 for c in checks)   # public tests were collected
+    assert "a + b" in art.final_text                           # loop still recovers
+    assert list(pkg.glob("_loop_*")) == []                     # no work dir leaked into the pkg
