@@ -49,3 +49,16 @@ class FakeJudge:
             overall=self._overall,
             rationale="fake",
         )
+
+
+class ScriptedModel:
+    """Returns a fixed sequence of responses (for testing multi-turn loops)."""
+
+    def __init__(self, texts: list[str]):
+        self._texts = list(texts)
+        self._i = 0
+
+    def complete(self, messages: list[dict], *, max_tokens: int) -> ModelResponse:
+        text = self._texts[min(self._i, len(self._texts) - 1)]
+        self._i += 1
+        return ModelResponse(text=text, tokens_in=1, tokens_out=1)
